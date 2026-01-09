@@ -48,7 +48,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/menus', menuRoutes);
 
-app.use('/uploads', express.static('uploads'));
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 app.use(notFound);
 app.use(errorHandler);

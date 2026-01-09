@@ -1,5 +1,38 @@
 const asyncHandler = require('express-async-handler');
+const path = require('path');
 const mongoose = require('mongoose');
+const cloudinaryLib = (() => {
+  try {
+    return require('cloudinary').v2;
+  } catch (e) {
+    return null;
+  }
+})();
+if (cloudinaryLib && process.env.CLOUDINARY_URL) {
+  cloudinaryLib.config({ url: process.env.CLOUDINARY_URL });
+}
+async function uploadImageBuffer(file) {
+  return new Promise((resolve, reject) => {
+    cloudinaryLib.uploader.upload_stream(
+      { resource_type: 'image', folder: 'menuapp' },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result.secure_url);
+      }
+    ).end(file.buffer);
+  });
+}
+function getBaseUrl(req) {
+  return (
+    process.env.PUBLIC_BASE_URL ||
+    process.env.SWAGGER_BASE_URL ||
+    `${req.protocol}://${req.get('host')}`
+  );
+}
+function resolveLocalImageUrl(req, filePath) {
+  const rel = `/uploads/${path.basename(filePath)}`;
+  return `${getBaseUrl(req)}${rel}`;
+}
 const Category = require('../models/Category');
 
 // @desc    Create a new category
@@ -7,7 +40,12 @@ const Category = require('../models/Category');
 // @access  Private/Admin
 const createCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
-  const image = req.file.path;
+  let image = null;
+  if (req.file && req.file.buffer && cloudinaryLib) {
+    image = await uploadImageBuffer(req.file);
+  } else if (req.file && req.file.path) {
+    image = resolveLocalImageUrl(req, req.file.path);
+  }
 
   const categoryExists = await Category.findOne({ name });
 
@@ -64,7 +102,12 @@ const updateCategory = asyncHandler(async (req, res) => {
     throw new Error('Invalid ID');
   }
   const { name } = req.body;
-  const image = req.file ? req.file.path : req.body.image;
+  let image = req.body.image;
+  if (req.file && req.file.buffer && cloudinaryLib) {
+    image = await uploadImageBuffer(req.file);
+  } else if (req.file && req.file.path) {
+    image = resolveLocalImageUrl(req, req.file.path);
+  }
 
   const category = await Category.findById(req.params.id);
 
