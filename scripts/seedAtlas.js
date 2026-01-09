@@ -7,18 +7,23 @@ const Menu = require('../models/Menu');
 async function run() {
   await mongoose.connect(process.env.MONGO_URI);
   const categoriesData = [
-    { name: 'Makanan', image: '/images/makanan.jpg' },
-    { name: 'Minuman', image: '/images/minuman.jpg' },
-    { name: 'Dessert', image: '/images/dessert.jpg' },
-    { name: 'Cemilan', image: '/images/cemilan.jpg' },
-    { name: 'Sarapan', image: '/images/sarapan.jpg' },
-    { name: 'Kopi', image: '/images/kopi.jpg' },
+    { name: 'Makanan', image: 'https://api.iconify.design/mdi/food.svg?height=48&color=%23000000' },
+    { name: 'Minuman', image: 'https://api.iconify.design/mdi/cup-water.svg?height=48&color=%23000000' },
+    { name: 'Dessert', image: 'https://api.iconify.design/mdi/cupcake.svg?height=48&color=%23000000' },
+    { name: 'Cemilan', image: 'https://api.iconify.design/mdi/cookie.svg?height=48&color=%23000000' },
+    { name: 'Sarapan', image: 'https://api.iconify.design/mdi/bread-slice.svg?height=48&color=%23000000' },
+    { name: 'Kopi', image: 'https://api.iconify.design/mdi/coffee.svg?height=48&color=%23000000' },
   ];
   const catMap = {};
   for (const c of categoriesData) {
     let doc = await Category.findOne({ name: c.name });
     if (!doc) {
       doc = await Category.create(c);
+    } else {
+      if (doc.image !== c.image) {
+        doc.image = c.image;
+        await doc.save();
+      }
     }
     catMap[c.name] = doc._id;
   }

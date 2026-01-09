@@ -45,6 +45,8 @@ const createCategory = asyncHandler(async (req, res) => {
     image = await uploadImageBuffer(req.file);
   } else if (req.file && req.file.path) {
     image = resolveLocalImageUrl(req, req.file.path);
+  } else if (req.body && req.body.image) {
+    image = req.body.image;
   }
 
   const categoryExists = await Category.findOne({ name });
