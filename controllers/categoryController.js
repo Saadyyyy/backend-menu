@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
 const Category = require('../models/Category');
 
 // @desc    Create a new category
@@ -40,6 +41,10 @@ const getCategories = asyncHandler(async (req, res) => {
 // @route   GET /api/categories/:id
 // @access  Public
 const getCategoryById = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid ID');
+  }
   const category = await Category.findById(req.params.id);
 
   if (category) {
@@ -54,6 +59,10 @@ const getCategoryById = asyncHandler(async (req, res) => {
 // @route   PUT /api/categories/:id
 // @access  Private/Admin
 const updateCategory = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid ID');
+  }
   const { name } = req.body;
   const image = req.file ? req.file.path : req.body.image;
 
@@ -74,6 +83,10 @@ const updateCategory = asyncHandler(async (req, res) => {
 // @route   DELETE /api/categories/:id
 // @access  Private/Admin
 const deleteCategory = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error('Invalid ID');
+  }
   const category = await Category.findByIdAndDelete(req.params.id);
 
   if (category) {
